@@ -40,6 +40,7 @@ extern NSString *const SRWebSocketErrorDomain;
 
 @property (nonatomic, readonly) SRReadyState readyState;
 @property (nonatomic, readonly, retain) NSURL *url;
+@property (nonatomic, strong) NSString *sessionCookie;
 
 // This returns the negotiated protocol.
 // It will be nil until after the handshake completes.
