@@ -933,7 +933,7 @@ static inline BOOL closeCodeIsValid(int closeCode) {
                 [self _closeWithProtocolError:[NSString stringWithFormat:@"Unable to handle frame_header.payload_length > UINT32_MAX (%llu > %u)", frame_header.payload_length, UINT32_MAX]];
                 return;
             } else {
-                // payload_length can be stored in a 32 bit NSUinteger, it is save to coerce it
+                // payload_length can be stored in a 32 bit NSUinteger, it is safe to coerce it
                 dataLength = (NSUInteger) frame_header.payload_length;
             }
         }
