@@ -707,6 +707,7 @@
 		F6B2083B1450F597009315AF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				CLANG_ENABLE_OBJC_ARC = YES;
 				DSTROOT = /tmp/SocketRocket.dst;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -731,6 +732,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "SocketRocket/SocketRocket-Prefix.pch";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 5.1.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(DEVELOPER_DIR)/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator7.1.sdk/usr/lib/system\"",
