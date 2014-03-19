@@ -25,10 +25,12 @@
     size_t buffer_size = (([self length] * 3 + 2) / 2);
     
     char *buffer = (char *)malloc(buffer_size);
+
+    int error = 0;
     
-    int len = b64_ntop([self bytes], [self length], buffer, buffer_size);
+    NSUInteger len = b64_ntop([self bytes], [self length], buffer, buffer_size, &error);
     
-    if (len == -1) {
+    if (error == 1) {
         free(buffer);
         return nil;
     } else{

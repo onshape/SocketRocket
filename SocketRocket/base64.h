@@ -19,11 +19,16 @@
 
 #include <sys/types.h>
 
-extern int
+/*
+ Changed from int to size_t so that we don't lose precision when returning the result. Since
+ targsize is size_t, size_t should also be the max number of numbers that can be copied
+ */
+extern size_t
 b64_ntop(u_char const *src,
          size_t srclength,
          char *target,
-         size_t targsize);
+         size_t targsize,
+         int *error); //new error argument added here so that we can detect an overflow and handle it accordingly
 
 extern int
 b64_pton(char const *src,

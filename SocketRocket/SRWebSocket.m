@@ -124,19 +124,21 @@ static inline void SRFastLog(NSString *format, ...);
 static NSString *newSHA1String(const char *bytes, size_t length) {
     uint8_t md[CC_SHA1_DIGEST_LENGTH];
 
-#if TARGET_RT_64_BIT == 1 //64-bit architecture
-    CC_SHA1(bytes, (unsigned int)length, md);
-#else
-    CC_SHA1(bytes, length, md);
-#endif
-
+    if (length < UINT32_MAX) {
+        CC_SHA1(bytes, (CC_LONG)length, md); //CC_LONG is typedef'd to a 32 bit unsigned integer, uint32_t
+    } else {
+        [NSException raise:NSInternalInconsistencyException format:@"length is than what CC_SHA1 can handle"];
+        return nil;
+    }
     
     size_t buffer_size = ((sizeof(md) * 3 + 2) / 2);
     
     char *buffer =  (char *)malloc(buffer_size);
+
+    int error = 0;
     
-    int len = b64_ntop(md, CC_SHA1_DIGEST_LENGTH, buffer, buffer_size);
-    if (len == -1) {
+    NSUInteger len = b64_ntop(md, CC_SHA1_DIGEST_LENGTH, buffer, buffer_size, &error);
+    if (error == 1) {
         free(buffer);
         return nil;
     } else{

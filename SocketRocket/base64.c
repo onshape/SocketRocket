@@ -129,9 +129,10 @@ static const char Pad64 = '=';
  */
 
 #if !defined(HAVE_B64_NTOP) && !defined(HAVE___B64_NTOP) 
-int
-b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize)
+size_t
+b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize, int *error)
 {
+    *error = 0; //reset the error flag defensively.
 	size_t datalength = 0;
 	u_char input[3];
 	u_char output[4];
@@ -148,8 +149,10 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize)
 		output[2] = ((input[1] & 0x0f) << 2) + (input[2] >> 6);
 		output[3] = input[2] & 0x3f;
         
-		if (datalength + 4 > targsize)
-			return (-1);
+		if (datalength + 4 > targsize) {
+            *error = 1;
+			return (0);
+        }
 		target[datalength++] = Base64[output[0]];
 		target[datalength++] = Base64[output[1]];
 		target[datalength++] = Base64[output[2]];
@@ -167,8 +170,10 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize)
 		output[1] = ((input[0] & 0x03) << 4) + (input[1] >> 4);
 		output[2] = ((input[1] & 0x0f) << 2) + (input[2] >> 6);
         
-		if (datalength + 4 > targsize)
-			return (-1);
+		if (datalength + 4 > targsize) {
+            *error = 1;
+            return (0);
+        }
 		target[datalength++] = Base64[output[0]];
 		target[datalength++] = Base64[output[1]];
 		if (srclength == 1)
@@ -177,19 +182,15 @@ b64_ntop(u_char const *src, size_t srclength, char *target, size_t targsize)
 			target[datalength++] = Base64[output[2]];
 		target[datalength++] = Pad64;
 	}
-	if (datalength >= targsize)
-		return (-1);
+
+	if (datalength >= targsize) {
+        *error = 1;
+        return (0);
+    }
+
 	target[datalength] = '\0';	/* Returned value doesn't count \0. */
 
-
-#if TARGET_RT_64_BIT == 1 //64-bit architecture
-
-    return datalength;
-#else
-//     datalength <= INT32_MAX);
-    return (int)datalength;
-#endif
-
+    return (datalength);
 }
 #endif /* !defined(HAVE_B64_NTOP) && !defined(HAVE___B64_NTOP) */
 
