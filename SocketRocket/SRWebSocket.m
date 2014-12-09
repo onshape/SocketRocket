@@ -289,6 +289,7 @@ static __strong NSData *CRLFCRLF;
         _urlRequest = request;
         
         _requestedProtocols = [protocols copy];
+        _sessionCookie = @"";
         
         [self _SR_commonInit];
     }
@@ -514,6 +515,7 @@ static __strong NSData *CRLFCRLF;
     
     assert([_secKey length] == 24);
     
+    CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Cookie"), (__bridge CFStringRef)self.sessionCookie);
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Upgrade"), CFSTR("websocket"));
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Connection"), CFSTR("Upgrade"));
     CFHTTPMessageSetHeaderFieldValue(request, CFSTR("Sec-WebSocket-Key"), (__bridge CFStringRef)_secKey);
