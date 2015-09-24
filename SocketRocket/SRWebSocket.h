@@ -88,6 +88,10 @@ extern NSString *const SRWebSocketErrorDomain;
 - (void)webSocket:(SRWebSocket *)webSocket didFailWithError:(NSError *)error;
 - (void)webSocket:(SRWebSocket *)webSocket didCloseWithCode:(NSInteger)code reason:(NSString *)reason wasClean:(BOOL)wasClean;
 
+// Let a delegate opt out of copying data. If a delegate doesn't implement one of these, the default is to copy.
+- (BOOL)shouldCopyDataToSend:(id)data;  // should the specified data be copied before sending?
+- (BOOL)shouldCopyReceivedData:(id)data;  // should data be copied before sending to webSocket:didReceiveMessage:
+
 @end
 
 #pragma mark - NSURLRequest (CertificateAdditions)
