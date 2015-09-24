@@ -719,8 +719,10 @@ static __strong NSData *CRLFCRLF;
 - (void)send:(id)data;
 {
     NSAssert(self.readyState != SR_CONNECTING, @"Invalid State: Cannot call send: until connection is open");
-    // TODO: maybe not copy this for performance
-    data = [data copy];
+    if (![self.delegate respondsToSelector:@selector(shouldCopyDataToSend:)] ||
+        [self.delegate shouldCopyDataToSend:data]) {
+        data = [data copy];
+    }
     dispatch_async(_workQueue, ^{
         if ([data isKindOfClass:[NSString class]]) {
             [self _sendFrameWithOpcode:SROpCodeTextFrame data:[(NSString *)data dataUsingEncoding:NSUTF8StringEncoding]];
@@ -867,7 +869,11 @@ static inline BOOL closeCodeIsValid(int closeCode) {
             break;
         }
         case SROpCodeBinaryFrame:
-            [self _handleMessage:[frameData copy]];
+            if (![self.delegate respondsToSelector:@selector(shouldCopyReceivedData:)] ||
+                [self.delegate shouldCopyReceivedData:frameData]) {
+                frameData = [frameData copy];
+            }
+            [self _handleMessage:frameData];
             break;
         case SROpCodeConnectionClose:
             [self handleCloseWithData:frameData];
@@ -1070,8 +1076,10 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
 - (void)_readFrameNew;
 {
     dispatch_async(_workQueue, ^{
-        [_currentFrameData setLength:0];
-        
+        // Don't reset the length, since Apple doesn't guarantee that this will free the memory (and in tests on
+        // some platforms, it doesn't seem to, effectively causing a leak the size of the biggest frame so far).
+        _currentFrameData = [[NSMutableData alloc] init];
+
         _currentFrameOpcode = 0;
         _currentFrameCount = 0;
         _readOpCount = 0;
