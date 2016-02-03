@@ -1,5 +1,5 @@
 //
-//   Copyright 2012 Square Inc.
+//   Copyright 2012 - 2015 Square Inc.
 //
 //   Licensed under the Apache License, Version 2.0 (the "License");
 //   you may not use this file except in compliance with the License.
@@ -14,8 +14,5 @@
 //   limitations under the License.
 //
 
-#ifdef __OBJC__
-    #import <Foundation/Foundation.h>
-    #import <XCTest/XCTest.h>
-    #import "SenTestCase+SRTAdditions.h"
-#endif
+#import <Foundation/Foundation.h>
+#import <SocketRocket/SRWebSocket.h>

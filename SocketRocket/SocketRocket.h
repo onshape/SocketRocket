@@ -14,8 +14,4 @@
 //   limitations under the License.
 //
 
-#ifdef __OBJC__
-    #import <Foundation/Foundation.h>
-    #import <XCTest/XCTest.h>
-    #import "SenTestCase+SRTAdditions.h"
-#endif
+#import <SocketRocket/SRWebSocket.h>
