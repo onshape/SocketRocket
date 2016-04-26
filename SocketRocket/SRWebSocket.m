@@ -787,8 +787,8 @@ static __strong NSData *CRLFCRLF;
 - (void)send:(id)data;
 {
     NSAssert(self.readyState != SR_CONNECTING, @"Invalid State: Cannot call send: until connection is open");
-    if (![self.delegate respondsToSelector:@selector(shouldCopyDataToSend:)] ||
-        [self.delegate shouldCopyDataToSend:data]) {
+    BOOL shouldCopyNotImplemented = ![self.delegate respondsToSelector:@selector(webSocket:shouldCopyDataToSend:)];
+    if (shouldCopyNotImplemented || [self.delegate webSocket:self shouldCopyDataToSend:data]) {
         data = [data copy];
     }
     dispatch_async(_workQueue, ^{
@@ -951,9 +951,9 @@ static inline BOOL closeCodeIsValid(int closeCode) {
             [self _handleMessage:str];
             break;
         }
+        BOOL shouldCopyNotImplemented = ![self.delegate respondsToSelector:@selector(webSocket:shouldCopyReceivedData:)];
         case SROpCodeBinaryFrame:
-            if (![self.delegate respondsToSelector:@selector(shouldCopyReceivedData:)] ||
-                [self.delegate shouldCopyReceivedData:frameData]) {
+            if (shouldCopyNotImplemented || [self.delegate webSocket:self shouldCopyReceivedData:frameData]) {
                 frameData = [frameData copy];
             }
             [self _handleMessage:frameData];
