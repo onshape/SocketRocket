@@ -937,6 +937,7 @@ static inline BOOL closeCodeIsValid(int closeCode) {
         });
     }
     
+    BOOL shouldCopyNotImplemented = ![self.delegate respondsToSelector:@selector(webSocket:shouldCopyReceivedData:)];
     switch (opcode) {
         case SROpCodeTextFrame: {
             NSString *str = [[NSString alloc] initWithData:frameData encoding:NSUTF8StringEncoding];
@@ -951,7 +952,6 @@ static inline BOOL closeCodeIsValid(int closeCode) {
             [self _handleMessage:str];
             break;
         }
-        BOOL shouldCopyNotImplemented = ![self.delegate respondsToSelector:@selector(webSocket:shouldCopyReceivedData:)];
         case SROpCodeBinaryFrame:
             if (shouldCopyNotImplemented || [self.delegate webSocket:self shouldCopyReceivedData:frameData]) {
                 frameData = [frameData copy];
