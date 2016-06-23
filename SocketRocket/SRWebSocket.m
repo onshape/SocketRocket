@@ -631,7 +631,11 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 - (void)sendData:(NSData *)data
 {
     NSAssert(self.readyState != SR_CONNECTING, @"Invalid State: Cannot call send: until connection is open");
-    data = [data copy];
+    BOOL shouldCopyNotImplemented = ![self.delegate respondsToSelector:@selector(webSocket:shouldCopyDataToSend:)];
+    if (shouldCopyNotImplemented || [self.delegate webSocket:self shouldCopyDataToSend:data]) {
+        data = [data copy];
+    }
+
     dispatch_async(_workQueue, ^{
         if (data) {
             [self _sendFrameWithOpcode:SROpCodeBinaryFrame data:data];
@@ -866,7 +870,22 @@ static inline BOOL closeCodeIsValid(int closeCode) {
         }
     } else {
         assert(frame_header.payload_length <= SIZE_T_MAX);
-        [self _addConsumerWithDataLength:(size_t)frame_header.payload_length callback:^(SRWebSocket *self, NSData *newData) {
+        NSUInteger dataLength;
+#if TARGET_RT_64_BIT == 1
+        // 64 bit architecture
+        dataLength = frame_header.payload_length;
+#else
+        // 32 bit architecture
+        if (frame_header.payload_length > UINT32_MAX) {
+            // bail out, the payload is bigger than we can handle.
+            [self _closeWithProtocolError:[NSString stringWithFormat:@"Unable to handle frame_header.payload_length > UINT32_MAX (%llu > %u)", frame_header.payload_length, UINT32_MAX]];
+            return;
+        } else {
+            // payload_length can be stored in a 32 bit NSUinteger, it is safe to coerce it
+            dataLength = (NSUInteger) frame_header.payload_length;
+        }
+#endif
+        [self _addConsumerWithDataLength:dataLength callback:^(SRWebSocket *self, NSData *newData) {
             if (isControlFrame) {
                 [self _handleFrameWithData:newData opCode:frame_header.opcode];
             } else {
@@ -999,7 +1018,9 @@ static const uint8_t SRPayloadLenMask   = 0x7F;
 - (void)_readFrameNew;
 {
     dispatch_async(_workQueue, ^{
-        [_currentFrameData setLength:0];
+        // Don't reset the length, since Apple doesn't guarantee that this will free the memory (and in tests on
+        // some platforms, it doesn't seem to, effectively causing a leak the size of the biggest frame so far).
+        _currentFrameData = [[NSMutableData alloc] init];
 
         _currentFrameOpcode = 0;
         _currentFrameCount = 0;

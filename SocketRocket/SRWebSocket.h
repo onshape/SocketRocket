@@ -296,6 +296,27 @@ NS_DESIGNATED_INITIALIZER;
 - (void)webSocket:(SRWebSocket *)webSocket didReceiveMessageWithString:(NSString *)string;
 
 /**
+ Called to determine whether to copy outbound data before sending.
+ 
+ Default (if not implemented) is to copy.
+
+ @param webSocket An instance of `SRWebSocket` that received a message.
+ @param data The data to be copied.
+*/
+- (BOOL)webSocket:(SRWebSocket *)webSocket shouldCopyDataToSend:(id)data;
+
+/**
+ Called to determine whether to copy inbound data before sending to
+ -webSocket:didReceiveMessage:.
+ 
+ Default (if not implemented) is to copy.
+
+ @param webSocket An instance of `SRWebSocket` that received a message.
+ @param data The data to be copied.
+*/
+- (BOOL)webSocket:(SRWebSocket *)webSocket shouldCopyReceivedData:(NSData *)data;
+
+/**
  Called when a frame was received from a web socket.
 
  @param webSocket An instance of `SRWebSocket` that received a message.
