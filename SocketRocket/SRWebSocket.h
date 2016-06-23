@@ -90,6 +90,8 @@ extern NSString *const SRHTTPResponseErrorKey;
 
 /**
  Current ready state of the socket. Default: `SR_CONNECTING`.
+ 
+ This property is Key-Value Observable and fully thread-safe.
  */
 @property (nonatomic, assign, readonly) SRReadyState readyState;
 

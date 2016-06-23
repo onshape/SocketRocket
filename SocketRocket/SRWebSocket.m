@@ -37,6 +37,7 @@
 #import "SRSecurityOptions.h"
 #import "SRHTTPConnectMessage.h"
 #import "SRRandom.h"
+#import "SRMutex.h"
 
 #if !__has_feature(objc_arc)
 #error SocketRocket must be compiled with ARC enabled
@@ -99,6 +100,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 @end
 
 @implementation SRWebSocket {
+    SRMutex _recursiveLock;
     dispatch_queue_t _workQueue;
     NSMutableArray<SRIOConsumer *> *_consumers;
 
@@ -151,6 +153,8 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
     SRProxyConnect *_proxyConnect;
 }
 
+@synthesize readyState = _readyState;
+
 ///--------------------------------------
 #pragma mark - Init
 ///--------------------------------------
@@ -173,6 +177,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 
     _readyState = SR_CONNECTING;
 
+    _recursiveLock = SRMutexInitRecursive();
     _workQueue = dispatch_queue_create(NULL, DISPATCH_QUEUE_SERIAL);
 
     // Going to set a specific on the queue so we can validate we're on the work queue
@@ -241,21 +246,45 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
         CFRelease(_receivedHTTPHeaders);
         _receivedHTTPHeaders = NULL;
     }
+
+    SRMutexDestroy(_recursiveLock);
 }
 
 ///--------------------------------------
 #pragma mark - Accessors
 ///--------------------------------------
 
-#ifndef NDEBUG
+#pragma mark readyState
 
-- (void)setReadyState:(SRReadyState)aReadyState;
+- (void)setReadyState:(SRReadyState)readyState
 {
-    assert(aReadyState > _readyState);
-    _readyState = aReadyState;
+    @try {
+        SRMutexLock(_recursiveLock);
+        if (_readyState != readyState) {
+            [self willChangeValueForKey:@"readyState"];
+            _readyState = readyState;
+            [self didChangeValueForKey:@"readyState"];
+        }
+    }
+    @finally {
+        SRMutexUnlock(_recursiveLock);
+    }
 }
 
-#endif
+- (SRReadyState)readyState
+{
+    @try {
+        SRMutexLock(_recursiveLock);
+        return _readyState;
+    }
+    @finally {
+        SRMutexUnlock(_recursiveLock);
+    }
+}
+
++ (BOOL)automaticallyNotifiesObserversOfReadyState {
+    return NO;
+}
 
 ///--------------------------------------
 #pragma mark - Open / Close
@@ -264,7 +293,7 @@ NSString *const SRHTTPResponseErrorKey = @"HTTPResponseStatusCode";
 - (void)open
 {
     assert(_url);
-    NSAssert(_readyState == SR_CONNECTING, @"Cannot call -(void)open on SRWebSocket more than once.");
+    NSAssert(self.readyState == SR_CONNECTING, @"Cannot call -(void)open on SRWebSocket more than once.");
 
     _selfRetain = self;
 
