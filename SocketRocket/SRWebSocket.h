@@ -355,7 +355,12 @@ extern NSString *const SRHTTPResponseErrorKey;
  */
 - (void)webSocket:(SRWebSocket *)webSocket didReceiveMessageWithData:(NSData *)data;
 
-// Whether to copy inbound data before sending to -webSocket:didReceiveMessage:. Default (if not implemented) is to copy.
+/**
+ Called when a frame is received from a web socket, to decide whether a defensive copy should be made.
+
+ @param webSocket An instance of `SRWebSocket` that received a message.
+ @param data      Received data in a form of `NSData`.
+ */
 - (BOOL)webSocket:(SRWebSocket *)webSocket shouldCopyReceivedData:(NSData *)data;
 
 #pragma mark Status & Connection
